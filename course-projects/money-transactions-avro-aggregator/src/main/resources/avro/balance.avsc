@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "namespace": "com.github.aksmiyazaki.moneytransactions",
+  "name": "AccountStatus",
+  "doc": "Customer account status",
+  "fields": [
+    {
+      "name": "balance",
+      "type": "string",
+      "doc": "Balance of the account, formatted as string to avoid using avro decimals."
+    },
+    {
+      "name": "number_of_deposits",
+      "type": "int",
+      "doc": "Number of Deposits that a customer did",
+      "default": 0
+    },
+    {
+      "name": "last_transaction_timestamp",
+      "type" : {
+        "type" : "long",
+        "logicalType" : "timestamp-millis"
+      },
+      "default": 0,
+      "doc": "Timestamp of the most recent Transaction"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "namespace": "com.github.aksmiyazaki.moneytransactions",
+  "name": "Transaction",
+  "doc": "Transactions Schema.",
+  "fields": [
+    {
+      "name": "value",
+      "type": "string",
+      "doc": "Value of the transaction"
+    },
+    {
+      "name": "kind",
+      "type": "string",
+      "doc": "Kind of the transaction"
+    },
+    {
+      "name": "timestamp",
+      "type" : {
+        "type" : "long",
+        "logicalType" : "timestamp-millis"
+      },
+      "doc": "Timestamp of the Transaction"
+    }
+  ]
+}
