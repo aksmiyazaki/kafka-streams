@@ -50,14 +50,6 @@ object TransactionsAggregator extends App {
     newStatus
   }
 
-  def buildAvroSerializer() = {
-    import scala.collection.JavaConversions.mapAsJavaMap
-    val valueSpecificAvroSerde = new SpecificAvroSerde[AccountStatus]()
-    val serdeConfig = Map("schema.registry.url" -> "http://localhost:8081")
-    valueSpecificAvroSerde.configure(mapAsJavaMap(serdeConfig), false)
-    valueSpecificAvroSerde
-  }
-
   val builder = new StreamsBuilder()
   val stream: KStream[String, Transaction] = builder.stream("money-transactions-input")
 

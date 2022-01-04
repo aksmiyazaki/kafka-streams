@@ -1,7 +1,7 @@
 package com.github.aksmiyazaki.moneytransactions
 
 import io.confluent.kafka.serializers.KafkaAvroSerializer
-import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerRecord, RecordMetadata}
+import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.serialization.StringSerializer
 
 import java.lang.Thread.sleep
@@ -14,13 +14,14 @@ object ProducerApp extends App {
 
   def defineProperties(): Properties = {
     val props = new Properties()
-    props.put("bootstrap.servers", "127.0.0.1:9092")
-    props.put("acks", "all")
-    props.put("retries", "10")
-    props.put("key.serializer", classOf[StringSerializer].getCanonicalName)
-    props.put("value.serializer", classOf[KafkaAvroSerializer].getCanonicalName)
-    props.put("schema.registry.url", "http://127.0.0.1:8081")
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
+    props.put(ProducerConfig.ACKS_CONFIG, "all")
+    props.put(ProducerConfig.RETRIES_CONFIG, "10")
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer].getCanonicalName)
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer].getCanonicalName)
+    props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true")
 
+    props.put("schema.registry.url", "http://127.0.0.1:8081")
     props
   }
 
