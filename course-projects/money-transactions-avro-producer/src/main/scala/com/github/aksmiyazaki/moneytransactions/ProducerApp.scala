@@ -47,9 +47,9 @@ object ProducerApp extends App {
 
   val producer: KafkaProducer[String, Transaction] = new KafkaProducer(defineProperties)
   val topic = "money-transactions-input"
-  val messagesPerSecond = 1 to 10
+  val messagesPerSecond = 1 to 2
   val rounds = 1 to 10
-  val customers = Seq("John", "Maria", "Ricardo", "Jose", "Patty", "Carlos")
+  val customers = Seq("John")//, "Maria", "Ricardo", "Jose", "Patty", "Carlos")
 
   for (i <- rounds) {
     for (genMsg <- messagesPerSecond)

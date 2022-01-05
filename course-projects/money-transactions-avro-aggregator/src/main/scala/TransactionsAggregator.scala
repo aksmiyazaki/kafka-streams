@@ -1,30 +1,45 @@
 package com.github.aksmiyazaki.moneytransactions.aggregator
 
 import com.github.aksmiyazaki.moneytransactions.{AccountStatus, Transaction}
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder, StreamsConfig}
-import org.apache.kafka.streams.kstream.KStream
+import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder, StreamsConfig, Topology}
+import org.apache.kafka.streams.kstream.{Consumed, Grouped, KStream, Materialized, Produced}
 
 import java.util.Properties
+import java.util.Collections
 
 object TransactionsAggregator extends App {
   val KIND_DEPOSIT = "deposit"
+  val SCHEMA_REGISTRY_URL = "http://localhost:8081"
 
   val builder = new StreamsBuilder()
-  val stream: KStream[String, Transaction] = builder.stream("money-transactions-input")
+
+  final val serdeConfig = Collections.singletonMap(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL)
+
+  val valueSourceSerde: SpecificAvroSerde[Transaction] = new SpecificAvroSerde
+  val valueResultSerde: SpecificAvroSerde[AccountStatus] = new SpecificAvroSerde
+
+  valueSourceSerde.configure(serdeConfig, false)
+  valueResultSerde.configure(serdeConfig, false)
+
+  val stream: KStream[String, Transaction] = builder.stream[String, Transaction]("money-transactions-input",
+    Consumed.`with`(Serdes.String(), valueSourceSerde, null, Topology.AutoOffsetReset.EARLIEST))
 
 
   stream.filter((_, transaction) => transaction.kind == KIND_DEPOSIT)
-    .groupByKey()
+    .groupByKey(Grouped.`with`(Serdes.String(), valueSourceSerde))
     .aggregate(
       () => generateBlankAccount(),
       (k, v, agg) => treatTransaction(k, v, agg)
     ).toStream
-    .to("money-transactions-output")
+    .to("money-transactions-output", Produced.`with`(Serdes.String(), valueResultSerde))
 
   val streams = new KafkaStreams(builder.build(), defineProperties)
+  streams.cleanUp()
   streams.start()
 
   // Prints the topology
@@ -48,10 +63,10 @@ object TransactionsAggregator extends App {
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String.getClass)
-    props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, classOf[SpecificAvroSerde[Transaction]].getCanonicalName)
+    props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, classOf[SpecificAvroSerde[_ <: SpecificRecord]])
+    props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL)
     props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, "1")
     props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE)
-    props.put("schema.registry.url", "http://127.0.0.1:8081")
 
     props
   }
