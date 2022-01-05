@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "namespace": "com.github.aksmiyazaki.user.and.transactions.producer",
+  "name": "User",
+  "doc": "Schema of an User",
+  "fields": [
+    {
+      "name": "id",
+      "type": "int",
+      "doc": "Unique identifier of the user"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "doc": "Name of the user"
+    },
+    {
+      "name": "last_updated",
+      "type" : {
+        "type" : "long",
+        "logicalType" : "timestamp-millis"
+      },
+      "doc": "Timestamp of the last update in this user."
+    }
+  ]
+}

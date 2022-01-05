@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "namespace": "com.github.aksmiyazaki.user.and.transactions.producer",
+  "name": "Transaction",
+  "doc": "Schema of a Transaction",
+  "fields": [
+    {
+      "name": "user_id",
+      "type": "int",
+      "doc": "Unique identifier of the user"
+    },
+    {
+      "name": "transaction_value",
+      "type": "string",
+      "doc": "Value of the transaction as a dot separated float as string (ex: 22.99123)"
+    },
+    {
+      "name": "transaction_ts",
+      "type" : {
+        "type" : "long",
+        "logicalType" : "timestamp-millis"
+      },
+      "doc": "Timestamp of the transaction."
+    }
+  ]
+}
