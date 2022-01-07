@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   lazy val V = new {
-    val AVRO = "1.8.2"
+    val AVRO = "1.10.2"
     val KAFKA = "1.0.0"
     val KAFKA_STREAMS = "3.0.0"
     val LOG4J = "1.7.32"

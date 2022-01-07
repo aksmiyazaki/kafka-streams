@@ -1,11 +1,11 @@
 {
   "type": "record",
   "namespace": "com.github.aksmiyazaki.usertransactionsjoin",
-  "name": "Transaction",
-  "doc": "Schema of a Transaction",
+  "name": "CompleteTransaction",
+  "doc": "Schema of a complete transaction, including all the user information",
   "fields": [
     {
-      "name": "id",
+      "name": "transaction_id",
       "type": "int",
       "doc": "Unique identifier of the transaction"
     },
@@ -13,6 +13,11 @@
       "name": "user_id",
       "type": "int",
       "doc": "Unique identifier of the user"
+    },
+    {
+      "name": "user_name",
+      "type": "string",
+      "doc": "Name of the user"
     },
     {
       "name": "transaction_value",
@@ -26,6 +31,14 @@
         "logicalType" : "timestamp-millis"
       },
       "doc": "Timestamp of the transaction."
+    },
+    {
+      "name": "last_updated",
+      "type" : {
+        "type" : "long",
+        "logicalType" : "timestamp-millis"
+      },
+      "doc": "Timestamp of the last update of the user."
     }
   ]
 }
