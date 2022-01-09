@@ -1,5 +1,6 @@
 package com.github.aksmiyazaki.user.and.transactions.producer
 
+import com.github.aksmiyazaki.usertransactionsjoin.{Transaction, User}
 import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.serialization.IntegerSerializer

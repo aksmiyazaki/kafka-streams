@@ -12,6 +12,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -57,6 +58,13 @@ public class UserTransactionsAggregator {
 
         innerStream.to(OUTPUT_INNER_JOIN_TOPIC, Produced.with(Serdes.Integer(), resultSerde));
 
+        KStream<Integer, CompleteTransaction> leftStream = transactionsStream.leftJoin(usersTable,
+                (transactionKey, transactionValue) -> transactionValue.getUserId(),
+                (transaction, user) -> generateCompleteTransactionFromSources(user, transaction));
+
+
+        leftStream.to(OUTPUT_LEFT_JOIN_TOPIC, Produced.with(Serdes.Integer(), resultSerde));
+
         Properties props = defineProperties();
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
         streams.cleanUp();
@@ -68,7 +76,7 @@ public class UserTransactionsAggregator {
     public static Properties defineProperties() {
         Properties props = new Properties();
 
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "usertransactionjoiner");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "usertransactionjoiner12345");
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.RETRIES_CONFIG, "10");
@@ -81,13 +89,24 @@ public class UserTransactionsAggregator {
     }
 
     public static CompleteTransaction generateCompleteTransactionFromSources(User user, Transaction trans) {
-        CompleteTransaction complete = new CompleteTransaction(trans.getId(),
-                user.getId(),
-                user.getName(),
-                trans.getTransactionValue(),
-                trans.getTransactionTs(),
-                user.getLastUpdated());
-        return complete;
+        if(user == null) {
+            CompleteTransaction complete = new CompleteTransaction(trans.getId(),
+                    0,
+                    "No User",
+                    trans.getTransactionValue(),
+                    trans.getTransactionTs(),
+                    Instant.ofEpochMilli(12345));
+            return complete;
+        } else {
+            CompleteTransaction complete = new CompleteTransaction(trans.getId(),
+                    user.getId(),
+                    user.getName(),
+                    trans.getTransactionValue(),
+                    trans.getTransactionTs(),
+                    user.getLastUpdated());
+            return complete;
+        }
+
     }
 
 
