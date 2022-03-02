@@ -5,6 +5,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
@@ -15,6 +16,9 @@ import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WordCount {
+    public static String INPUT_TOPIC = "word-count-input";
+    public static String OUTPUT_TOPIC = "word-count-output";
+
 
     public static void main(String[] args) {
         Properties config = new Properties();
@@ -25,10 +29,23 @@ public class WordCount {
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.STATE_DIR_CONFIG, "wordcount-application" + (ThreadLocalRandom.current().nextInt(1, 1001)));
 
+        WordCount wc = new WordCount();
+
+        KafkaStreams streams = new KafkaStreams(wc.createTopology(), config);
+        streams.start();
+
+        // Prints the topology
+        System.out.println(streams.toString());
+
+        // Adds shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
+
+    public Topology createTopology() {
         StreamsBuilder builder = new StreamsBuilder();
 
         // 1 - Stream from Kafka
-        KStream<String, String> wordCountInput = builder.stream("word-count-input");
+        KStream<String, String> wordCountInput = builder.stream(INPUT_TOPIC);
 
         // 2 - map values to lowercase
         KTable<String, Long> wordCounts =
@@ -37,16 +54,9 @@ public class WordCount {
                         .groupByKey()
                         .count(Materialized.as("Count"));
 
-        wordCounts.toStream().to("word-count-output", Produced.with(Serdes.String(), Serdes.Long()));
+        wordCounts.toStream().to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.Long()));
 
-        KafkaStreams streams = new KafkaStreams(builder.build(), config);
-        streams.start();
-
-        // Prints the topology
-        System.out.println(streams.toString());
-
-        // Adds shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+        return builder.build();
     }
 
 }
